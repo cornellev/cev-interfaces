@@ -1,0 +1,215 @@
+syntax = "proto3";
+
+package cev.interfaces;
+
+import "cev_interfaces.proto";
+
+// This shit is all AI slop, TODO fix it and make it work
+// but it's better to include it than to not, so whatever
+
+// Drafts not in use yet. This folder is gitignored and not generated.
+// To adopt a message, move it to cev_interfaces.proto and run generate.sh.
+
+message Quaternion {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double w = 4;
+}
+
+message Point2 {
+  double x = 1;
+  double y = 2;
+}
+
+message Pose2 {
+  double x = 1;
+  double y = 2;
+  // Counter-clockwise from +x, in (-pi, pi].
+  double heading = 3;
+}
+
+// WGS84.
+message GeoPoint {
+  double latitude_deg = 1;
+  double longitude_deg = 2;
+  // Height above the ellipsoid.
+  optional double altitude_m = 3;
+}
+
+// cev/sensors/magnetometer
+// TODO: confirm the driver's units and convert to tesla in the reader.
+message MagneticField {
+  uint64 stamp_ns = 1;
+  Vector3 field_tesla = 2;
+}
+
+// cev/sensors/gps/position
+message GpsFix {
+  uint64 stamp_ns = 1;
+  // Unset when the receiver has no fix.
+  GeoPoint position = 2;
+}
+
+// cev/sensors/steering/steering_angle
+message SteeringAngle {
+  uint64 stamp_ns = 1;
+  // 0 is straight ahead. Left is positive.
+  double angle_rad = 2;
+}
+
+// cev/sensors/lidar/raw_points: x, y, z, intensity as f32 (point_step 16).
+// cev/sensors/lidar/segmented_points: raw layout + i32 cluster_id (20).
+// cev/sensors/lidar/range_graph: x, y, z, intensity, range as f32 + i32
+// cluster_id (24). Organized: height is the ring count, width is the column
+// count, and cell (ring, col) is point ring * width + col.
+message PointCloud {
+  uint64 stamp_ns = 1;
+  uint32 height = 2;
+  uint32 width = 3;
+  // Bytes per point.
+  uint32 point_step = 4;
+  // Little-endian. Length is height * width * point_step.
+  bytes data = 5;
+}
+
+// cev/sensors/camera/rgb_image, cev/sensors/camera/depth_image
+// TODO: remote viewers need a compressed JPEG topic and message.
+message Image {
+  enum PixelFormat {
+    PIXEL_FORMAT_UNSPECIFIED = 0;
+    PIXEL_FORMAT_BGRA8 = 1;
+    // Meters, one little-endian f32 per pixel. NaN means no reading.
+    PIXEL_FORMAT_DEPTH_F32 = 2;
+  }
+  uint64 stamp_ns = 1;
+  uint32 width = 2;
+  uint32 height = 3;
+  PixelFormat pixel_format = 4;
+  // Rows are tightly packed.
+  bytes data = 5;
+}
+
+// cev/sensors/lidar/occupancy_grid/local (lidar frame)
+// cev/sensors/lidar/occupancy_grid/global (world frame)
+// cev/sensors/camera/occupancy_grid
+// cev/perception/lane_costmap
+// cev/mapping/global_map
+// cev/mapping/costmap
+// TODO: global_map and lidar/occupancy_grid/global have the same
+// description in the topic table. Keep one.
+// TODO: a signed distance field for mapping/costmap needs float cells and
+// its own message.
+message OccupancyGrid {
+  uint64 stamp_ns = 1;
+  double resolution_m = 2;
+  // Cells along x.
+  uint32 width = 3;
+  // Cells along y.
+  uint32 height = 4;
+  // Outer corner of cell (0, 0).
+  double origin_x = 5;
+  double origin_y = 6;
+  // Row-major: cell (x, y) is at index y * width + x. Values follow nav2:
+  // 0 free, 1-252 cost, 253 inscribed, 254 lethal, 255 unknown.
+  bytes data = 7;
+}
+
+// cev/classification/objects
+message DetectedObjects {
+  uint64 stamp_ns = 1;
+  repeated DetectedObject objects = 2;
+}
+
+// Box corners in pixels. (0, 0) is the top-left corner of the image.
+message DetectedObject {
+  // Same value across frames for the same tracked object.
+  uint32 track_id = 1;
+  // TODO: fix the label set with the classifier.
+  string label = 2;
+  float confidence = 3;
+  float x_min = 4;
+  float y_min = 5;
+  float x_max = 6;
+  float y_max = 7;
+}
+
+// cev/mapping/lanes
+// TODO: the topic table marks lanes as TBD. Placeholder: one polyline per
+// lane boundary.
+message Lanes {
+  uint64 stamp_ns = 1;
+  repeated Lane lanes = 2;
+}
+
+message Lane {
+  enum Side {
+    SIDE_UNSPECIFIED = 0;
+    SIDE_LEFT = 1;
+    SIDE_RIGHT = 2;
+  }
+  Side side = 1;
+  // Ordered away from the car.
+  repeated Point2 points = 2;
+}
+
+// cev/localization/pose (world frame)
+message VehiclePose {
+  uint64 stamp_ns = 1;
+  double x = 2;
+  double y = 3;
+  // Counter-clockwise from east, in (-pi, pi].
+  double heading = 4;
+}
+
+// cev/sensors/pose_world, cev/sensors/pose_frame
+// Pose of the lidar in the world frame.
+message Transform {
+  uint64 stamp_ns = 1;
+  Vector3 translation = 2;
+  Quaternion rotation = 3;
+}
+
+// cev/planning/ref_trajectory, cev/planning/global_route (world frame)
+// TODO: global_route shares Path until the route planner needs more.
+message Path {
+  uint64 stamp_ns = 1;
+  repeated Pose2 poses = 2;
+}
+
+// cev/commands/goal
+// TODO: the planner reads only local. Drop geo unless GPS goals are planned.
+message Goal {
+  uint64 stamp_ns = 1;
+  oneof target {
+    GeoPoint geo = 2;
+    // Meters in the world frame, e.g. from the car's start.
+    Point2 local = 3;
+  }
+}
+
+// cev/commands/control
+message AckermannCommand {
+  uint64 stamp_ns = 1;
+  // Same sign as SteeringAngle: left is positive.
+  double steering_angle_rad = 2;
+  // Negative drives backward.
+  double speed_mps = 3;
+}
+
+// cev/commands/estop
+// TODO: decide the stop rule. Consumers should stop when no Estop arrives
+// within a timeout, which needs a fixed publish rate.
+message Estop {
+  uint64 stamp_ns = 1;
+  // True stops all motion.
+  bool engaged = 2;
+  string reason = 3;
+}
+
+// cev/config/speed
+// Speed the controller tracks.
+message TargetSpeed {
+  uint64 stamp_ns = 1;
+  double speed_mps = 2;
+}

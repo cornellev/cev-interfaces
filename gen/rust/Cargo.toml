@@ -1,0 +1,11 @@
+[package]
+name = "cev-interfaces"
+version = "0.1.0"
+edition = "2024"
+authors = ["Cornell Electric Vehicles"]
+license = "MIT"
+description = "Generated Rust code for the Cornell EV protobuf messages."
+
+# Must match the prost version that protoc-gen-prost generates for.
+[dependencies]
+prost = "0.14"

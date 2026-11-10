@@ -1,0 +1,36 @@
+name: codegen
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install protoc-gen-prost
+        run: cargo install --locked protoc-gen-prost --version 0.5.0
+
+      - name: Regenerate
+        run: ./generate.sh
+
+      - name: Fail if gen/ does not match the .proto files
+        run: |
+          if [ -n "$(git status --porcelain -- gen/)" ]; then
+            git status --short -- gen/
+            echo "gen/ is out of date. Run ./generate.sh and commit the result."
+            exit 1
+          fi
+
+      - name: Build the Rust crate
+        run: cargo build --manifest-path gen/rust/Cargo.toml
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Import the Python module
+        run: uv run --no-project --with protobuf==7.35.1 python -c "import sys; sys.path.insert(0, 'gen/python'); import cev_interfaces_pb2"
