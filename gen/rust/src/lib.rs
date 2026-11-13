@@ -61,23 +61,4 @@ pub struct GeoPoint {
     #[prost(double, optional, tag="3")]
     pub altitude_m: ::core::option::Option<f64>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct Imu {
-    #[prost(uint64, tag="1")]
-    pub stamp_ns: u64,
-    /// m/s^2
-    #[prost(message, optional, tag="2")]
-    pub linear_acceleration: ::core::option::Option<Vector3>,
-    /// rad/s about x (roll), y (pitch), z (yaw)
-    #[prost(message, optional, tag="3")]
-    pub angular_velocity: ::core::option::Option<Vector3>,
-}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct WheelSpeed {
-    #[prost(uint64, tag="1")]
-    pub stamp_ns: u64,
-    /// positive => forward motion
-    #[prost(double, tag="2")]
-    pub rev_per_s: f64,
-}
 // @@protoc_insertion_point(module)

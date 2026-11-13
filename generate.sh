@@ -46,8 +46,7 @@ mkdir -p gen/python gen/rust/src
     --prost_opt=bytes=. \
     --python_out=gen/python \
     --pyi_out=gen/python \
-    cev/interfaces/v1/common.proto \
-    cev/interfaces/v1/sensors.proto
+    cev/interfaces/v1/common.proto
 
 # protoc-gen-prost nests output by package. One package, so the generated
 # module is the whole crate.
