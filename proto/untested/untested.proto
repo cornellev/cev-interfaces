@@ -1,41 +1,15 @@
 syntax = "proto3";
 
-package cev.interfaces;
+package cev.interfaces.v1;
 
-import "cev_interfaces.proto";
+import "cev/interfaces/v1/common.proto";
 
 // This shit is all AI slop, TODO fix it and make it work
 // but it's better to include it than to not, so whatever
 
 // Drafts not in use yet. This folder is gitignored and not generated.
-// To adopt a message, move it to cev_interfaces.proto and run generate.sh.
-
-message Quaternion {
-  double x = 1;
-  double y = 2;
-  double z = 3;
-  double w = 4;
-}
-
-message Point2 {
-  double x = 1;
-  double y = 2;
-}
-
-message Pose2 {
-  double x = 1;
-  double y = 2;
-  // Counter-clockwise from +x, in (-pi, pi].
-  double heading = 3;
-}
-
-// WGS84.
-message GeoPoint {
-  double latitude_deg = 1;
-  double longitude_deg = 2;
-  // Height above the ellipsoid.
-  optional double altitude_m = 3;
-}
+// To adopt a message, move it into the appropriate versioned proto and run
+// generate.sh.
 
 // cev/sensors/magnetometer
 // TODO: confirm the driver's units and convert to tesla in the reader.
