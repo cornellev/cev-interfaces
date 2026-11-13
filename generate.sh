@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Regenerates gen/ from proto/cev_interfaces.proto. CI runs this script and
+# Regenerates gen/ from the versioned definitions under proto/cev/interfaces.
+# CI runs this script and
 # fails the PR if gen/ changes, so commit its output with every .proto change.
 #
 # Needs: curl, unzip, and protoc-gen-prost on PATH:
@@ -38,6 +39,9 @@ fi
 rm -rf gen/python gen/rust/src
 mkdir -p gen/python gen/rust/src
 
+proto_files=(proto/cev/interfaces/v1/*.proto)
+proto_files=("${proto_files[@]#proto/}")
+
 "$protoc_dir/bin/protoc" \
     --proto_path=proto \
     --plugin=protoc-gen-prost="$(command -v protoc-gen-prost)" \
@@ -45,9 +49,9 @@ mkdir -p gen/python gen/rust/src
     --prost_opt=bytes=. \
     --python_out=gen/python \
     --pyi_out=gen/python \
-    cev_interfaces.proto
+    "${proto_files[@]}"
 
 # protoc-gen-prost nests output by package. One package, so the generated
 # module is the whole crate.
-mv gen/rust/src/cev/interfaces/cev.interfaces.rs gen/rust/src/lib.rs
+mv gen/rust/src/cev/interfaces/v1/cev.interfaces.v1.rs gen/rust/src/lib.rs
 rm -r gen/rust/src/cev

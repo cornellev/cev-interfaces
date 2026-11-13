@@ -33,4 +33,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6
 
       - name: Import the Python module
-        run: uv run --no-project --with protobuf==7.35.1 python -c "import sys; sys.path.insert(0, 'gen/python'); import cev_interfaces_pb2"
+        run: uv run --no-project --with protobuf==7.35.1 python -c "import sys; sys.path.insert(0, 'gen/python'); from cev.interfaces.v1 import common_pb2, sensors_pb2"
