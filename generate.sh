@@ -39,6 +39,9 @@ fi
 rm -rf gen/python gen/rust/src
 mkdir -p gen/python gen/rust/src
 
+proto_files=(proto/cev/interfaces/v1/*.proto)
+proto_files=("${proto_files[@]#proto/}")
+
 "$protoc_dir/bin/protoc" \
     --proto_path=proto \
     --plugin=protoc-gen-prost="$(command -v protoc-gen-prost)" \
@@ -46,8 +49,7 @@ mkdir -p gen/python gen/rust/src
     --prost_opt=bytes=. \
     --python_out=gen/python \
     --pyi_out=gen/python \
-    cev/interfaces/v1/common.proto \
-    cev/interfaces/v1/sensors.proto
+    "${proto_files[@]}"
 
 # protoc-gen-prost nests output by package. One package, so the generated
 # module is the whole crate.
