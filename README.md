@@ -29,16 +29,20 @@ converting arbitrary types into raw bytes.
 
 ## Messages
 
-`proto/cev_interfaces.proto`:
+`proto/cev/interfaces/v1/sensors.proto`:
 | topic | data name | type | type vague description |
 |---|---|---|---|
 | cev/sensors/imu | imu data | `Imu` | timestamp + floats for each of the accelerometer data (f/b, l/r, u/d) and gyroscope (roll pitch yaw) - 6dof |
 | cev/sensors/wheels/left_rpm | left wheel rpm | `WheelSpeed` | timestamp + rotations/s, float |
 | cev/sensors/wheels/right_rpm | right wheel rpm | `WheelSpeed` | timestamp + rotations/s, float |
 
+TODO add common.proto
+
 ## Usage
 
-Messages are defined as `.proto` files in `proto/`. Every PR to this repo
+Messages are defined as `.proto` files in `proto/cev/interfaces/[version]/`. 
+
+Every PR to this repo
 triggers CI to run `generate.sh`, which in turn runs `protoc` to compile
 modified `.proto` files into Rust and Python code in `gen/`. This directory
 contains the corresponding structs (or equivalent, depending on language) which
@@ -48,4 +52,17 @@ We recommend adding this entire repo into your code as a Git submodule.
 Although this will likely carry some unnecessary code, it's the easiest way to
 track updates.
 
-TODO: Figure out what C++ version we want to support and how to get protoc to work with it
+## Contributing
+
+We follow [Protocol Buffers Style Guide](https://protobuf.dev/programming-guides/style/)
+and [Google Cloud API directory structure](https://cloud.google.com/apis/design/directory_structure)
+best practices regarding naming protobuf files and versioning them. This means
+the version number e.g. v1 identifies breaking changes, so we can add new
+versions as v2, v3, etc. to allow users to update without breaking their old
+code (and to use the new versions at their own pace).
+
+You can find a directory of types in the above Messages section of this README.
+If you would
+like to add new struct(s), you can feel free to place them wherever makes
+the most sense for you as a user. This could mean adding them to existing
+`.proto` files or making a new `.proto` file.
