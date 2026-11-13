@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package cev.interfaces.v1;
+import "cev/interfaces/v1/common.proto";
+
+message RangeNode {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float intensity = 4;
+    float range = 5;
+    sint32 azimuth_centideg = 6;
+    sint32 point_idx = 7;
+    bool valid = 8;
+    sint32 alpha = 9;
+    sint32 beta = 10;
+}
+
+message RangeGraph {
+    Header header = 1;
+    uint32 num_rings = 2;
+    uint32 num_cols = 3;
+    uint32 azimuth_resolution_centideg = 4;
+    // bytes per node
+    repeated RangeNode nodes = 5;
+}
+
+// cev/sensors/lidar/raw_points: x, y, z, intensity as f32 (point_step 16).
+// cev/sensors/lidar/segmented_points: raw layout + i32 cluster_id (20).
+message PointCloud {
+  Header header = 1;
+  uint32 width = 2;
+  uint32 point_step = 3;
+  bytes data = 4;
+}
+
+// cev/sensors/lidar/occupancy_grid/local (lidar frame)
+// cev/sensors/lidar/occupancy_grid/global (world frame)
+message OccupancyGrid {
+  Header header = 1;
+  uint32 size_x = 2;
+  uint32 size_y = 3;
+  float resolution_m = 4;
+  float origin_x = 5;
+  float origin_y = 6;
+  // Row-major: cell (x, y) is at index y * size_x + x. Values follow nav2:
+  // 0 free, 1-252 cost, 253 inscribed, 254 lethal, 255 unknown.
+  bytes data = 7;
+}
+
+message Diff {
+  uint32 mx = 1;
+  uint32 my = 2;
+  uint32 old = 3;   // 0-255
+  uint32 new = 4;   // 0-255
+}
+
+// cev/sensors/lidar/occupancy_grid/diff (diff in occupancy grids)
+message OccupancyGridDiff {
+    Header header = 1;
+    repeated Diff diffs = 2; // basically Vec<Diff>
+}
+
+// cev/sensors/pose_world, cev/sensors/pose_frame
+// Pose of the lidar in the world frame.
+message Transform {
+  Header header = 1;
+  Vector3 translation = 2;
+  Quaternion rotation = 3;
+}
