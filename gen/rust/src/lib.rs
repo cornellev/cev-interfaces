@@ -65,6 +65,130 @@ pub struct GeoPoint {
     #[prost(double, optional, tag="3")]
     pub altitude_m: ::core::option::Option<f64>,
 }
+// Planning messages: goals in, paths and status out.
+// units are in SI, angles are radians, world frame (x east, y north),
+// headings counterclockwise from +x in (-pi, pi], as in common.proto.
+// The map comes from the lidar's OccupancyGrid (lidar.proto).
+
+/// cev/planning/goal
+/// Where the car should go. Published by whatever decides the mission.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Goal {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag="2")]
+    pub pose: ::core::option::Option<Pose2>,
+    /// Arrived once the car is within this distance of pose.position.
+    #[prost(double, tag="3")]
+    pub tolerance_m: f64,
+    /// Whether the car must also arrive facing pose.heading.
+    #[prost(bool, tag="4")]
+    pub use_heading: bool,
+    /// Used when use_heading is set.
+    #[prost(double, tag="5")]
+    pub heading_tolerance_rad: f64,
+}
+/// cev/vehicle/state
+/// The car's state as the planner needs it.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VehicleState {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    /// The middle of the rear axle (the point the planner's car model moves),
+    /// not the center of the body.
+    #[prost(message, optional, tag="2")]
+    pub pose: ::core::option::Option<Pose2>,
+    /// Negative while reversing.
+    #[prost(double, tag="3")]
+    pub speed_mps: f64,
+    /// Front wheel angle; positive turns left (counterclockwise).
+    #[prost(double, tag="4")]
+    pub steering_rad: f64,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PathPoint {
+    /// Rear axle pose, as in VehicleState.
+    #[prost(message, optional, tag="1")]
+    pub pose: ::core::option::Option<Pose2>,
+    /// Planned speed here; negative while reversing.
+    #[prost(double, tag="2")]
+    pub speed_mps: f64,
+    /// Planned front wheel angle here; positive turns left.
+    #[prost(double, tag="3")]
+    pub steering_rad: f64,
+    /// Time from the first point.
+    #[prost(double, tag="4")]
+    pub time_s: f64,
+}
+/// cev/planning/global_path: the plan from the car to the goal on the known map.
+/// cev/planning/local_path: the path the Driver is following now, updated
+/// whenever it replans around something the lidar found.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Path {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    /// From the car's pose when planned; points a few cm apart.
+    #[prost(message, repeated, tag="2")]
+    pub points: ::prost::alloc::vec::Vec<PathPoint>,
+    /// Whether the last point is within the goal's tolerance. False with no
+    /// points when no path was found.
+    #[prost(bool, tag="3")]
+    pub reaches_goal: bool,
+    /// The planner's cost (driving time plus steering and braking penalties),
+    /// for comparing paths. Not comparable across planners.
+    #[prost(double, tag="4")]
+    pub cost: f64,
+}
+/// cev/planning/status
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PlannerStatus {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(enumeration="DriverMode", tag="2")]
+    pub mode: i32,
+    /// What it's doing, for logs, e.g. "route blocked ahead, replan".
+    #[prost(string, tag="3")]
+    pub message: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum DriverMode {
+    Unspecified = 0,
+    /// Following the current path.
+    Follow = 1,
+    /// Path blocked ahead: replanning while still driving.
+    Replan = 2,
+    /// Stopping, or stopped, to replan from rest.
+    Stop = 3,
+    /// Reached the goal.
+    Done = 4,
+}
+impl DriverMode {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "DRIVER_MODE_UNSPECIFIED",
+            Self::Follow => "DRIVER_MODE_FOLLOW",
+            Self::Replan => "DRIVER_MODE_REPLAN",
+            Self::Stop => "DRIVER_MODE_STOP",
+            Self::Done => "DRIVER_MODE_DONE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "DRIVER_MODE_UNSPECIFIED" => Some(Self::Unspecified),
+            "DRIVER_MODE_FOLLOW" => Some(Self::Follow),
+            "DRIVER_MODE_REPLAN" => Some(Self::Replan),
+            "DRIVER_MODE_STOP" => Some(Self::Stop),
+            "DRIVER_MODE_DONE" => Some(Self::Done),
+            _ => None,
+        }
+    }
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct Imu {
     #[prost(uint64, tag="1")]
