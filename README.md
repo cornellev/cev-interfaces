@@ -36,6 +36,18 @@ converting arbitrary types into raw bytes.
 | cev/sensors/wheels/left_rpm | left wheel rpm | `WheelSpeed` | timestamp + rotations/s, float |
 | cev/sensors/wheels/right_rpm | right wheel rpm | `WheelSpeed` | timestamp + rotations/s, float |
 
+`proto/cev/interfaces/v1/lidar.proto`:
+| topic | data name | type | type vague description |
+|---|---|---|---|
+| cev/sensors/lidar/raw_points | raw lidar points | `PointCloud` | header + packed points: x, y, z, intensity as f32 (16 bytes per point) |
+| cev/sensors/lidar/segmented_points | segmented lidar points | `PointCloud` | raw point layout + i32 cluster id (20 bytes per point) |
+| cev/sensors/lidar/range_graph | range graph | `RangeGraph` | header + grid size + one `RangeNode` per (ring, azimuth) cell |
+| cev/sensors/lidar/occupancy_grid/local | local occupancy grid | `OccupancyGrid` | header + size, resolution, origin + row-major cell costs, one byte per cell (nav2 values). Lidar frame |
+| cev/sensors/lidar/occupancy_grid/global | global occupancy grid | `OccupancyGrid` | same layout as the local grid. World frame |
+| cev/sensors/lidar/occupancy_grid/diff | occupancy grid changes | `OccupancyGridDiff` | header + list of changed cells: (x, y, old cost, new cost) |
+| cev/sensors/pose_world | lidar pose in world | `Transform` | header + translation (`Vector3`) + rotation (`Quaternion`) |
+| cev/sensors/pose_frame | lidar pose per frame | `Transform` | same layout as `pose_world`. Pose used for each lidar frame |
+
 TODO add common.proto
 
 ## Usage
