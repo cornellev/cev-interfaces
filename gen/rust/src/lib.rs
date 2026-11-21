@@ -66,6 +66,110 @@ pub struct GeoPoint {
     pub altitude_m: ::core::option::Option<f64>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RangeNode {
+    #[prost(float, tag="1")]
+    pub x: f32,
+    #[prost(float, tag="2")]
+    pub y: f32,
+    #[prost(float, tag="3")]
+    pub z: f32,
+    #[prost(float, tag="4")]
+    pub intensity: f32,
+    #[prost(float, tag="5")]
+    pub range: f32,
+    #[prost(sint32, tag="6")]
+    pub azimuth_centideg: i32,
+    #[prost(sint32, tag="7")]
+    pub point_idx: i32,
+    #[prost(bool, tag="8")]
+    pub valid: bool,
+    #[prost(sint32, tag="9")]
+    pub alpha: i32,
+    #[prost(sint32, tag="10")]
+    pub beta: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RangeGraph {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(uint32, tag="2")]
+    pub num_rings: u32,
+    #[prost(uint32, tag="3")]
+    pub num_cols: u32,
+    #[prost(uint32, tag="4")]
+    pub azimuth_resolution_centideg: u32,
+    /// bytes per node
+    #[prost(message, repeated, tag="5")]
+    pub nodes: ::prost::alloc::vec::Vec<RangeNode>,
+}
+/// cev/sensors/lidar/raw_points: x, y, z, intensity as f32 (point_step 16).
+/// cev/sensors/lidar/segmented_points: raw layout + i32 cluster_id (20).
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PointCloud {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(uint32, tag="2")]
+    pub width: u32,
+    #[prost(uint32, tag="3")]
+    pub point_step: u32,
+    #[prost(bytes="bytes", tag="4")]
+    pub data: ::prost::bytes::Bytes,
+}
+/// cev/sensors/lidar/occupancy_grid/local (lidar frame)
+/// cev/sensors/lidar/occupancy_grid/global (world frame)
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OccupancyGrid {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(uint32, tag="2")]
+    pub size_x: u32,
+    #[prost(uint32, tag="3")]
+    pub size_y: u32,
+    #[prost(float, tag="4")]
+    pub resolution_m: f32,
+    #[prost(float, tag="5")]
+    pub origin_x: f32,
+    #[prost(float, tag="6")]
+    pub origin_y: f32,
+    /// Row-major: cell (x, y) is at index y * size_x + x. Values follow nav2:
+    /// 0 free, 1-252 cost, 253 inscribed, 254 lethal, 255 unknown.
+    #[prost(bytes="bytes", tag="7")]
+    pub data: ::prost::bytes::Bytes,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Diff {
+    #[prost(uint32, tag="1")]
+    pub mx: u32,
+    #[prost(uint32, tag="2")]
+    pub my: u32,
+    /// 0-255
+    #[prost(uint32, tag="3")]
+    pub old: u32,
+    /// 0-255
+    #[prost(uint32, tag="4")]
+    pub new: u32,
+}
+/// cev/sensors/lidar/occupancy_grid/diff (diff in occupancy grids)
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OccupancyGridDiff {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    /// basically Vec<Diff>
+    #[prost(message, repeated, tag="2")]
+    pub diffs: ::prost::alloc::vec::Vec<Diff>,
+}
+/// cev/sensors/pose_world, cev/sensors/pose_frame
+/// Pose of the lidar in the world frame.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Transform {
+    #[prost(message, optional, tag="1")]
+    pub header: ::core::option::Option<Header>,
+    #[prost(message, optional, tag="2")]
+    pub translation: ::core::option::Option<Vector3>,
+    #[prost(message, optional, tag="3")]
+    pub rotation: ::core::option::Option<Quaternion>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct Imu {
     #[prost(uint64, tag="1")]
     pub stamp_ns: u64,
