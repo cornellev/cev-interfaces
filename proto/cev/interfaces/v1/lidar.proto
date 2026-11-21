@@ -4,25 +4,25 @@ package cev.interfaces.v1;
 import "cev/interfaces/v1/common.proto";
 
 message RangeNode {
-    float x = 1;
-    float y = 2;
-    float z = 3;
-    float intensity = 4;
-    float range = 5;
-    sint32 azimuth_centideg = 6;
-    sint32 point_idx = 7;
-    bool valid = 8;
-    sint32 alpha = 9;
-    sint32 beta = 10;
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float intensity = 4;
+  float range = 5;
+  sint32 azimuth_centideg = 6;
+  sint32 point_idx = 7;
+  bool valid = 8;
+  sint32 alpha = 9;
+  sint32 beta = 10;
 }
 
 message RangeGraph {
-    Header header = 1;
-    uint32 num_rings = 2;
-    uint32 num_cols = 3;
-    uint32 azimuth_resolution_centideg = 4;
-    // bytes per node
-    repeated RangeNode nodes = 5;
+  Header header = 1;
+  uint32 num_rings = 2;
+  uint32 num_cols = 3;
+  uint32 azimuth_resolution_centideg = 4;
+  // bytes per node
+  repeated RangeNode nodes = 5;
 }
 
 // cev/sensors/lidar/raw_points: x, y, z, intensity as f32 (point_step 16).
@@ -57,8 +57,8 @@ message Diff {
 
 // cev/sensors/lidar/occupancy_grid/diff (diff in occupancy grids)
 message OccupancyGridDiff {
-    Header header = 1;
-    repeated Diff diffs = 2; // basically Vec<Diff>
+  Header header = 1;
+  repeated Diff diffs = 2; // basically Vec<Diff>
 }
 
 // cev/sensors/pose_world, cev/sensors/pose_frame
