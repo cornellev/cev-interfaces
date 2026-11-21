@@ -48,6 +48,15 @@ converting arbitrary types into raw bytes.
 | cev/sensors/pose_world | lidar pose in world | `Transform` | header + translation (`Vector3`) + rotation (`Quaternion`) |
 | cev/sensors/pose_frame | lidar pose per frame | `Transform` | same layout as `pose_world`. Pose used for each lidar frame |
 
+`proto/cev/interfaces/v1/planning.proto`:
+| topic | data name | type | type vague description |
+|---|---|---|---|
+| cev/planning/goal | goal | `Goal` | timestamp + target pose + how close counts as arrived (m, and optionally heading) |
+| cev/vehicle/state | vehicle state | `VehicleState` | timestamp + rear axle pose + speed (m/s) + front wheel steering angle (rad) |
+| cev/planning/global_path | global path | `Path` | timestamp + points (pose, speed, steering, time) from the car to the goal on the known map + reaches goal + cost |
+| cev/planning/local_path | local path | `Path` | same as global path: the path the driver is following now, updated when it replans |
+| cev/planning/status | planner status | `PlannerStatus` | timestamp + mode (follow / replan / stop / done) + message |
+
 TODO add common.proto
 
 ## Usage

@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package cev.interfaces.v1;
+
+import "cev/interfaces/v1/common.proto";
+
+// Planning messages: goals in, paths and status out.
+// units are in SI, angles are radians, world frame (x east, y north),
+// headings counterclockwise from +x in (-pi, pi], as in common.proto.
+// The map comes from the lidar's OccupancyGrid (lidar.proto).
+
+// cev/planning/goal
+// Where the car should go. Published by whatever decides the mission.
+message Goal {
+  Header header = 1;
+  Pose2 pose = 2;
+  // Arrived once the car is within this distance of pose.position.
+  double tolerance_m = 3;
+  // Whether the car must also arrive facing pose.heading.
+  bool use_heading = 4;
+  // Used when use_heading is set.
+  double heading_tolerance_rad = 5;
+}
+
+// cev/vehicle/state
+// The car's state as the planner needs it.
+message VehicleState {
+  Header header = 1;
+  // The middle of the rear axle (the point the planner's car model moves),
+  // not the center of the body.
+  Pose2 pose = 2;
+  // Negative while reversing.
+  double speed_mps = 3;
+  // Front wheel angle; positive turns left (counterclockwise).
+  double steering_rad = 4;
+}
+
+message PathPoint {
+  // Rear axle pose, as in VehicleState.
+  Pose2 pose = 1;
+  // Planned speed here; negative while reversing.
+  double speed_mps = 2;
+  // Planned front wheel angle here; positive turns left.
+  double steering_rad = 3;
+  // Time from the first point.
+  double time_s = 4;
+}
+
+// cev/planning/global_path: the plan from the car to the goal on the known map.
+// cev/planning/local_path: the path the Driver is following now, updated
+// whenever it replans around something the lidar found.
+message Path {
+  Header header = 1;
+  // From the car's pose when planned; points a few cm apart.
+  repeated PathPoint points = 2;
+  // Whether the last point is within the goal's tolerance. False with no
+  // points when no path was found.
+  bool reaches_goal = 3;
+  // The planner's cost (driving time plus steering and braking penalties),
+  // for comparing paths. Not comparable across planners.
+  double cost = 4;
+}
+
+enum DriverMode {
+  DRIVER_MODE_UNSPECIFIED = 0;
+  // Following the current path.
+  DRIVER_MODE_FOLLOW = 1;
+  // Path blocked ahead: replanning while still driving.
+  DRIVER_MODE_REPLAN = 2;
+  // Stopping, or stopped, to replan from rest.
+  DRIVER_MODE_STOP = 3;
+  // Reached the goal.
+  DRIVER_MODE_DONE = 4;
+}
+
+// cev/planning/status
+message PlannerStatus {
+  Header header = 1;
+  DriverMode mode = 2;
+  // What it's doing, for logs, e.g. "route blocked ahead, replan".
+  string message = 3;
+}
